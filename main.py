@@ -58,7 +58,7 @@ def removerJogador():
 listaJogadores = Listbox(window,width=70)
 def mostrarJogadores(players):
     for index, jogador in enumerate(players):
-        listaJogadores.insert(index,f"{index + 1}. {jogador['nome']} - {jogador['clan']} - {jogador['custo']}")
+        listaJogadores.insert(index,f"{index + 1}. {jogador['nome']} - {jogador['clan']} - {jogador['custo']} - {jogador['lenda']} - {jogador['hierarquia']}")
 
 mostrarJogadores(jogadores)
 # Redimensionar a imagem para o tamanho desejado
@@ -74,7 +74,7 @@ nomeJogador = Entry(window,font=("Arial",8),width=50)
 hierarquiaJogador = ttk.Combobox(window, values=["Lider","Co-Lider","Membro"])
 clansJogador = ttk.Combobox(window, values=["Bichos do Mato","Vasco","Inimigos da Moda","Firebirds","Complexo do Corinthians","Strawberry Tea","Aurora","Cruzeiro","Ranked Beasts","Patota da Moneymatch"])
 custoJogador = ttk.Combobox(window, values=[10,20,30,40,50,60,70,80,90,100,110,120])
-lendaJogador = ttk.Combobox(window,values=["bodvar", "cassidy", "orion", "lord vraxx", "gnash", "queen nai", "hattori", "sir roland", "scarlet", "thatch", "ada", "sentinel", "lucien", "teros", "brynn", "asuri", "barraza", "ember", "azoth", "koji", "ulgrim", "diana", "jhala", "kor", "wu shang", "val", "ragnir", "cross", "mirage", "nix", "mordex", "yumiko", "artemis", "caspian", "sidra", "xull", "kaya", "isaiah", "jiro", "lin fei", "zariel", "rayman", "dusk", "fait", "thor", "petra", "vector", "volkov", "onyx", "jaeyun", "mako", "magyar", "reno", "munin", "arcadia", "ezio", "tezca", "thea", "red raptor", "loki", "seven", "vivi"])
+lendaJogador = ttk.Combobox(window,values=["desconhecido","bodvar", "cassidy", "orion", "lord vraxx", "gnash", "queen nai", "hattori", "sir roland", "scarlet", "thatch", "ada", "sentinel", "lucien", "teros", "brynn", "asuri", "barraza", "ember", "azoth", "koji", "ulgrim", "diana", "jhala", "kor", "wu shang", "val", "ragnir", "cross", "mirage", "nix", "mordex", "yumiko", "artemis", "caspian", "sidra", "xull", "kaya", "isaiah", "jiro", "lin fei", "zariel", "rayman", "dusk", "fait", "thor", "petra", "vector", "volkov", "onyx", "jaeyun", "mako", "magyar", "reno", "munin", "arcadia", "ezio", "tezca", "thea", "red raptor", "loki", "seven", "vivi"])
 
 nomeLabel = Label(window,text="Nome do Jogador",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
 hierarquiaLabel = Label(window,text="Hierarquia",foreground="#FFC857",background="#1C1C1C",font=("Arial"))
