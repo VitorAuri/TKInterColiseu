@@ -1,21 +1,48 @@
-from tkinter import *
-from tkinter import ttk
+import tkinter as tk
+from tkinter import ttk, messagebox
 import json
 from PIL import Image, ImageTk
+import requests
 
 # Instanciando Janela
-window = Tk()
-window.geometry("640x540")
+window = tk.Tk()
+window.geometry("1240x600")
 window.title("Coliseu de Clãs - Editor de Jogadores")
+url = "https://api.npoint.io/73701443fb9f9a913c0b"
+
+lendas = ["desconhecido","bodvar", "cassidy", "orion", "lord vraxx", "gnash", "queen nai", "hattori", "sir roland", "scarlet", "thatch", "ada", "sentinel", "lucien", "teros", "brynn", "asuri", "barraza", "ember", "azoth", "koji", "ulgrim", "diana", "jhala", "kor", "wu shang", "val", "ragnir", "cross", "mirage", "nix", "mordex", "yumiko", "artemis", "caspian", "sidra", "xull", "kaya", "isaiah", "jiro", "lin fei", "zariel", "rayman", "dusk", "fait", "thor", "petra", "vector", "volkov", "onyx", "jaeyun", "mako", "magyar", "reno", "munin", "arcadia", "ezio", "tezca", "thea", "red raptor", "loki", "seven", "vivi"]
+clans = ["Bichos do Mato","Vasco","Inimigos da Moda","Firebirds","Complexo do Corinthians","Strawberry Tea","Aurora","Cruzeiro","Ranked Beasts","Patota da Moneymatch"]
 
 # Carregar a imagem original
-original_image = Image.open("logo.png")
+ImagemColiseu = Image.open("logo.png")
+tamanho_desejado = (500, 500)
+ImagemRedimensionada = ImagemColiseu.resize(tamanho_desejado)
+ImagemTK =  ImageTk.PhotoImage(ImagemRedimensionada)
+ImagemRenderizada = tk.Label(image=ImagemTK,background="#1C1C1C")
+ImagemRenderizada.place(x=560,y=-120)
 
 count = 0
 
 with open("lista.json", "r") as file:
     data = json.load(file)
     jogadores = data["jogadores"]
+
+def obterListaAtualizada():
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open("lista.json", "w") as file:
+            data = response.json()
+            json.dump(data, file, indent=4)
+    else:
+        print("Falha ao obter lista de jogadores, código de erro:", response.status_code)
+
+    listaJogadores.delete(*listaJogadores.get_children())
+    mostrarJogadores(data["jogadores"])
+
+def confirmarAtualizacao():
+    confirmacao = messagebox.askyesno("Confirmação", "Deseja realmente obter a lista atualizada de jogadores?\n\nA lista salva em seu computador será sobrescrita pela a que está hospedada, significando que você pode perder alterações feitas.")
+    if confirmacao:
+        obterListaAtualizada()
 
 def adicionarJogador():
     nome = nomeJogador.get()
@@ -35,104 +62,156 @@ def adicionarJogador():
     with open("lista.json", "w") as file:
         json.dump(data, file, indent=4)
 
-    # Limpa a lista de jogadores e mostra novamente
-    listaJogadores.delete(0, END)
+    listaJogadores.delete(*listaJogadores.get_children())
     mostrarJogadores(data["jogadores"])
 
-
 def removerJogador():
-    jogadorParaApagar = listaJogadores.curselection()
+    jogadorParaApagar = listaJogadores.selection()
     if jogadorParaApagar:
-        indice = jogadorParaApagar[0]
+        indice = listaJogadores.index(jogadorParaApagar)
         del data["jogadores"][indice]
 
         with open("lista.json", "w") as file:
             json.dump(data, file, indent=4)
 
         # Limpa a lista de jogadores e mostra novamente
-        listaJogadores.delete(0, END)
+        listaJogadores.delete(*listaJogadores.get_children())
         mostrarJogadores(data["jogadores"])
+
+def editarJogador():
+    jogadorSelecionado = listaJogadores.selection()
+    if jogadorSelecionado:
+        indice = listaJogadores.index(jogadorSelecionado)
+        jogador = data["jogadores"][indice]
+
+        # Cria uma janela pop-up para edição do jogador
+        popup = tk.Toplevel(window)
+        popup.title("Editar Jogador")
+        popup.geometry("300x200")
+
+        # Campos de entrada para as informações do jogador
+        tk.Label(popup, text="Nome do Jogador:").grid(row=0, column=0, padx=5, pady=5)
+        nome_edit = tk.Entry(popup)
+        nome_edit.insert(tk.END, jogador["nome"])
+        nome_edit.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(popup, text="Hierarquia:").grid(row=1, column=0, padx=5, pady=5)
+        hierarquia_edit = ttk.Combobox(popup, values=["Lider", "Co-Lider", "Membro"])
+        hierarquia_edit.set(jogador["hierarquia"])
+        hierarquia_edit.grid(row=1, column=1, padx=5, pady=5)
+
+        tk.Label(popup, text="Clã:").grid(row=2, column=0, padx=5, pady=5)
+        clans_edit = ttk.Combobox(popup, values=clans)
+        clans_edit.set(jogador["clan"])
+        clans_edit.grid(row=2, column=1, padx=5, pady=5)
+
+        tk.Label(popup, text="Custo:").grid(row=3, column=0, padx=5, pady=5)
+        custo_edit = ttk.Combobox(popup, values=[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120])
+        custo_edit.set(jogador["custo"])
+        custo_edit.grid(row=3, column=1, padx=5, pady=5)
+
+        tk.Label(popup, text="Lenda:").grid(row=4, column=0, padx=5, pady=5)
+        lenda_edit = ttk.Combobox(popup, values=lendas)
+        lenda_edit.set(jogador["lenda"])
+        lenda_edit.grid(row=4, column=1, padx=5, pady=5)
+
+        # Função para salvar as edições
+        def salvar_edicao():
+            jogador["nome"] = nome_edit.get()
+            jogador["hierarquia"] = hierarquia_edit.get()
+            jogador["clan"] = clans_edit.get()
+            jogador["custo"] = custo_edit.get()
+            jogador["lenda"] = lenda_edit.get()
+
+            # Atualiza os dados na lista de jogadores
+            data["jogadores"][indice] = jogador
+
+            # Atualiza a Treeview com os dados editados
+            listaJogadores.item(jogadorSelecionado, values=(jogador["nome"], jogador["clan"], jogador["hierarquia"], jogador["custo"], jogador["lenda"]))
+
+            popup.destroy()
+
+        # Botões para salvar ou cancelar as edições
+        tk.Button(popup, text="Salvar", command=salvar_edicao).grid(row=5, column=0, columnspan=2, padx=5, pady=5)
+        tk.Button(popup, text="Cancelar", command=popup.destroy).grid(row=6, column=0, columnspan=2, padx=5, pady=5)
+
+
+def autocomplete(event):
+    current_text = lendaJogador.get()
+    # Obtém todos os valores da combobox
+    all_values = lendaJogador['values']
     
+    # Verifica se a tecla pressionada é uma tecla de exclusão
+    is_delete_key = event.keysym in ["BackSpace", "Delete"]
 
+    # Verifica se o texto atual não está vazio e a tecla pressionada não é uma tecla de exclusão
+    if current_text and not is_delete_key:
+        # Filtra os valores que começam com o texto atual
+        filtered_values = [value for value in all_values if value.startswith(current_text)]
+        if filtered_values:
+            # Seleciona o primeiro valor filtrado
+            lendaJogador.set(filtered_values[0])
+            # Define a seleção do texto para o final
+            lendaJogador.selection_range(len(current_text), tk.END)
 
-listaJogadores = Listbox(window,width=70)
-def mostrarJogadores(players):
-    for index, jogador in enumerate(players):
-        listaJogadores.insert(index,f"{index + 1}. {jogador['nome']} - {jogador['clan']} - {jogador['custo']} - {jogador['lenda']} - {jogador['hierarquia']}")
+def mostrarJogadores(jogadores):
+    for jogador in jogadores:
+        listaJogadores.insert("", "end", values=(jogador['nome'], jogador['clan'], jogador['hierarquia'], jogador['custo'], jogador['lenda']))
 
+listaJogadores = ttk.Treeview(window, columns=("Jogador", "Clã", "Hierarquia", "Custo", "Lenda"), show="headings")
 mostrarJogadores(jogadores)
-# Redimensionar a imagem para o tamanho desejado
-nova_largura = 100
-nova_altura = 100
-imagem_redimensionada = original_image.resize((nova_largura, nova_altura))
+listaJogadoresLabel = tk.Label(window, text="Lista de Jogadores", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
+listaJogadores.place(x=130, y=290)
+listaJogadoresLabel.place(x=130, y=260)
+listaJogadores.heading("Jogador", text="Jogador")
+listaJogadores.heading("Clã", text="Clã")
+listaJogadores.heading("Hierarquia", text="Hierarquia")
+listaJogadores.heading("Custo", text="Custo")
+listaJogadores.heading("Lenda", text="Lenda")
+scrollbar = ttk.Scrollbar(window, orient="vertical", command=listaJogadores.yview)
+scrollbar.place(x=1140,y=290,height=225)
+listaJogadores.configure(yscrollcommand=scrollbar.set)
 
-# Converter a imagem redimensionada para o formato suportado pelo Tkinter
-imagem_tk = ImageTk.PhotoImage(imagem_redimensionada)
+nomeJogador = tk.Entry(window, font=("Arial", 8), width=50)
+nomeLabel = tk.Label(window, text="Nome do Jogador", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
+nomeJogador.place(x=130, y=50)
+nomeLabel.place(x=125, y=25)
 
-# Criação dos Widgets na Janela
-nomeJogador = Entry(window,font=("Arial",8),width=50)
 hierarquiaJogador = ttk.Combobox(window, values=["Lider","Co-Lider","Membro"])
-clansJogador = ttk.Combobox(window, values=["Bichos do Mato","Vasco","Inimigos da Moda","Firebirds","Complexo do Corinthians","Strawberry Tea","Aurora","Cruzeiro","Ranked Beasts","Patota da Moneymatch"])
+hierarquiaLabel = tk.Label(window, text="Hierarquia", foreground="#FFC857", background="#1C1C1C", font=("Arial"))
+hierarquiaJogador.place(x=130, y=80)
+hierarquiaLabel.place(x=275, y=80)
+
+clansJogador = ttk.Combobox(window, values=clans)
+clansLabel = tk.Label(window, text="Clãs", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
+clansJogador.place(x=130, y=115)
+clansLabel.place(x=275, y=115)
+
 custoJogador = ttk.Combobox(window, values=[10,20,30,40,50,60,70,80,90,100,110,120])
-lendaJogador = ttk.Combobox(window,values=["desconhecido","bodvar", "cassidy", "orion", "lord vraxx", "gnash", "queen nai", "hattori", "sir roland", "scarlet", "thatch", "ada", "sentinel", "lucien", "teros", "brynn", "asuri", "barraza", "ember", "azoth", "koji", "ulgrim", "diana", "jhala", "kor", "wu shang", "val", "ragnir", "cross", "mirage", "nix", "mordex", "yumiko", "artemis", "caspian", "sidra", "xull", "kaya", "isaiah", "jiro", "lin fei", "zariel", "rayman", "dusk", "fait", "thor", "petra", "vector", "volkov", "onyx", "jaeyun", "mako", "magyar", "reno", "munin", "arcadia", "ezio", "tezca", "thea", "red raptor", "loki", "seven", "vivi"])
+custoLabel = tk.Label(window, text="Custo", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
+custoJogador.place(x=130, y=150)
+custoLabel.place(x=275, y=150)
 
-nomeLabel = Label(window,text="Nome do Jogador",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
-hierarquiaLabel = Label(window,text="Hierarquia",foreground="#FFC857",background="#1C1C1C",font=("Arial"))
-clansLabel = Label(window,text="Clãs",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
-custoLabel = Label(window,text="Custo",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
-lendaLabel = Label(window,text="Lenda",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
+lendaJogador = ttk.Combobox(window, values=lendas)
+lendaLabel = tk.Label(window, text="Lenda", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
+lendaJogador.bind("<KeyRelease>", autocomplete)
+lendaJogador.place(x=130, y=185)
+lendaLabel.place(x=275, y=185)
 
-adicionarLabel = Label(window,text="Jogador adicionado com Sucesso!",foreground="green",background="#1C1C1C",font=("Arial",10))
-removerLabel = Label(window,text="Jogador removido com Sucesso!",foreground="green",background="#1C1C1C",font=("Arial",10))
+adicionar = tk.Button(window, text="Adicionar Jogador", background="#111111", foreground="#FFC857", activebackground="#FFC857", activeforeground="#111111", bd=0, command=adicionarJogador, font=("Arial", 16, "bold"))
+adicionar.place(x=130, y=215)
 
-listaJogadoresLabel = Label(window,text="Lista de Jogadores",foreground="#FFC857",background="#1C1C1C",font=("Arial",13))
+editar = tk.Button(window,text="Editar Jogador",background="#111111", foreground="#FFC857", activebackground="#FFC857", activeforeground="#111111", bd=0, command=editarJogador, font=("Arial", 16, "bold"))
+editar.place(x=130, y=530)
 
-adicionar = Button(window,text="Adicionar Jogador",
-                background="#111111",
-                foreground="#FFC857", 
-                activebackground="#FFC857",
-                activeforeground="#111111",
-                bd=0,
-                command=adicionarJogador,
-                font=("Arial", 16, "bold"))
-remover = Button(window,text="Remover Jogador",
-                background="#111111",
-                foreground="#FFC857", 
-                activebackground="#FFC857",
-                activeforeground="#111111",
-                bd=0,
-                command=removerJogador,
-                font=("Arial", 16, "bold"))
+remover = tk.Button(window, text="Remover Jogador", background="#111111", foreground="#FFC857", activebackground="#FFC857", activeforeground="#111111", bd=0, command=removerJogador, font=("Arial", 16, "bold"))
+remover.place(x=340, y=530)
 
-imagem = Label(image=imagem_tk,background="#1C1C1C")
-
-# Renderizando os Widgets na Janela
-imagem.place(x=0,y=0)
-nomeJogador.place(x=130,y=50)
-hierarquiaJogador.place(x=130,y=80)
-clansJogador.place(x=130,y=115)
-custoJogador.place(x=130,y=150)
-lendaJogador.place(x=130,y=185)
-
-listaJogadores.place(x=130,y=290)
-
-nomeLabel.place(x=125,y=25)
-hierarquiaLabel.place(x=275,y=80)
-clansLabel.place(x=275,y=115)
-custoLabel.place(x=275,y=150)
-lendaLabel.place(x=275,y=185)
-listaJogadoresLabel.place(x=130,y=260)
+obterAtt = tk.Button(window, text="Obter lista Atualizada", background="#111111", foreground="#FFC857", activebackground="#FFC857", activeforeground="#111111", bd=0, command=confirmarAtualizacao, font=("Arial", 16, "bold"))
+obterAtt.place(x=580, y=530)
 
 
-
-
-adicionar.place(x=130,y=215)
-remover.place(x=130,y=470)
-
-# Ícone da Janela
-icon = PhotoImage(file="logo.png")
+icon = tk.PhotoImage(file="logo.png")
 window.iconphoto(True, icon)
 window.config(background="#1C1C1C")
-
-# Fazer display na tela da janela
 window.mainloop()
