@@ -3,16 +3,3 @@ preto-escuro: #111111;
 cinza: #474350;
 amarelo: #FFC857;
 branco: #F4F7F5;
-
-
-
-label = Label(window,
-              text="Adicione um Jogador", 
-              font=("Arial", 30, "bold"),
-              background="#111111",
-              foreground="#FFC857",
-              relief=RAISED,
-              bd=3,
-              padx=20,
-              pady=20,
-              )
