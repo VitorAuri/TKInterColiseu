@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
@@ -27,6 +29,11 @@ with open("lista.json", "r") as file:
     data = json.load(file)
     jogadores = data["jogadores"]
 
+
+def reiniciarPrograma():
+    python = sys.executable
+    os.execl(python, python, * sys.argv)
+    
 def obterListaAtualizada():
     response = requests.get(url)
     if response.status_code == 200:
@@ -40,9 +47,10 @@ def obterListaAtualizada():
     mostrarJogadores(data["jogadores"])
 
 def confirmarAtualizacao():
-    confirmacao = messagebox.askyesno("Confirmação", "Deseja realmente obter a lista atualizada de jogadores?\n\nA lista salva em seu computador será sobrescrita pela a que está hospedada, significando que você pode perder alterações feitas.")
+    confirmacao = messagebox.askyesno("Confirmação", "Deseja realmente obter a lista atualizada de jogadores?\n\nA lista salva em seu computador será sobrescrita pela a que está hospedada, significando que você pode perder alterações feitas.\n\n(O programa será reiniciado)")
     if confirmacao:
         obterListaAtualizada()
+        reiniciarPrograma()
 
 def adicionarJogador():
     nome = nomeJogador.get()
