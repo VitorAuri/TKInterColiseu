@@ -74,7 +74,6 @@ def removerJogador():
         with open("lista.json", "w") as file:
             json.dump(data, file, indent=4)
 
-        # Limpa a lista de jogadores e mostra novamente
         listaJogadores.delete(*listaJogadores.get_children())
         mostrarJogadores(data["jogadores"])
 
@@ -84,12 +83,10 @@ def editarJogador():
         indice = listaJogadores.index(jogadorSelecionado)
         jogador = data["jogadores"][indice]
 
-        # Cria uma janela pop-up para edição do jogador
         popup = tk.Toplevel(window)
         popup.title("Editar Jogador")
         popup.geometry("300x200")
 
-        # Campos de entrada para as informações do jogador
         tk.Label(popup, text="Nome do Jogador:").grid(row=0, column=0, padx=5, pady=5)
         nome_edit = tk.Entry(popup)
         nome_edit.insert(tk.END, jogador["nome"])
@@ -113,9 +110,9 @@ def editarJogador():
         tk.Label(popup, text="Lenda:").grid(row=4, column=0, padx=5, pady=5)
         lenda_edit = ttk.Combobox(popup, values=lendas)
         lenda_edit.set(jogador["lenda"])
+        lenda_edit.bind("<KeyRelease>", lambda event, lenda_widget=lenda_edit: autoComplete(event, lenda_widget))
         lenda_edit.grid(row=4, column=1, padx=5, pady=5)
 
-        # Função para salvar as edições
         def salvar_edicao():
             jogador["nome"] = nome_edit.get()
             jogador["hierarquia"] = hierarquia_edit.get()
@@ -123,23 +120,20 @@ def editarJogador():
             jogador["custo"] = custo_edit.get()
             jogador["lenda"] = lenda_edit.get()
 
-            # Atualiza os dados na lista de jogadores
             data["jogadores"][indice] = jogador
 
-            # Atualiza a Treeview com os dados editados
             listaJogadores.item(jogadorSelecionado, values=(jogador["nome"], jogador["clan"], jogador["hierarquia"], jogador["custo"], jogador["lenda"]))
 
             popup.destroy()
 
-        # Botões para salvar ou cancelar as edições
         tk.Button(popup, text="Salvar", command=salvar_edicao).grid(row=5, column=0, columnspan=2, padx=5, pady=5)
-        tk.Button(popup, text="Cancelar", command=popup.destroy).grid(row=6, column=0, columnspan=2, padx=5, pady=5)
+        tk.Button(popup, text="Cancelar", command=popup.destroy).grid(row=5, column=1, columnspan=2, padx=5, pady=5)
 
 
-def autocomplete(event):
-    current_text = lendaJogador.get()
+def autoComplete(event, lenda_widget):
+    current_text = lenda_widget.get()
     # Obtém todos os valores da combobox
-    all_values = lendaJogador['values']
+    all_values = lenda_widget['values']
     
     # Verifica se a tecla pressionada é uma tecla de exclusão
     is_delete_key = event.keysym in ["BackSpace", "Delete"]
@@ -150,9 +144,9 @@ def autocomplete(event):
         filtered_values = [value for value in all_values if value.startswith(current_text)]
         if filtered_values:
             # Seleciona o primeiro valor filtrado
-            lendaJogador.set(filtered_values[0])
+            lenda_widget.set(filtered_values[0])
             # Define a seleção do texto para o final
-            lendaJogador.selection_range(len(current_text), tk.END)
+            lenda_widget.selection_range(len(current_text), tk.END)
 
 def mostrarJogadores(jogadores):
     for jogador in jogadores:
@@ -194,7 +188,7 @@ custoLabel.place(x=275, y=150)
 
 lendaJogador = ttk.Combobox(window, values=lendas)
 lendaLabel = tk.Label(window, text="Lenda", foreground="#FFC857", background="#1C1C1C", font=("Arial", 13))
-lendaJogador.bind("<KeyRelease>", autocomplete)
+lendaJogador.bind("<KeyRelease>", lambda event: autoComplete(event, lendaJogador))
 lendaJogador.place(x=130, y=185)
 lendaLabel.place(x=275, y=185)
 
